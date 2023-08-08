@@ -5,13 +5,13 @@ on:
     inputs:
       raft-repo:
         description: raft repo
-        default: canonical/raft
+        default: cowsql/raft
       raft-ref:
         description: raft branch or ref
         default: master
       dqlite-repo:
         description: dqlite repo
-        default: canonical/dqlite
+        default: cowsql/cowsql
       dqlite-ref:
         description: dqlite branch or ref
         default: master
@@ -30,15 +30,15 @@ on:
 
 jobs:
   custom-dispatch:
-    uses: canonical/jepsen.dqlite/.github/workflows/test-build-run.yml@master
+    uses: cowsql/jepsen.ribon/.github/workflows/test-build-run.yml@master
     with:
       workloads: ${{ inputs.workloads }}
       nemeses: ${{ inputs.nemeses }}
       disk: ${{ inputs.disk }}
       cli-opts: ${{ inputs.cli-opts }}
-      jepsen-dqlite-repo: canonical/jepsen.dqlite
+      jepsen-dqlite-repo: cowsql/jepsen.ribon
       jepsen-dqlite-ref: master
-      raft-repo: ${{ inputs.raft-repo || 'canonical/raft' }}
+      raft-repo: ${{ inputs.raft-repo || 'cowsql/raft' }}
       raft-ref: ${{ inputs.raft-ref || 'master' }}
-      dqlite-repo: ${{ inputs.dqlite-repo || 'canonical/dqlite' }}
+      dqlite-repo: ${{ inputs.dqlite-repo || 'cowsql/cowsql' }}
       dqlite-ref: ${{ inputs.dqlite-ref || 'master' }}

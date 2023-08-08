@@ -9,13 +9,13 @@ on:
     inputs:
       raft-repo:
         description: raft repo
-        default: canonical/raft
+        default: cowsql/raft
       raft-ref:
         description: raft branch or ref
         default: master
       dqlite-repo:
         description: dqlite repo
-        default: canonical/dqlite
+        default: cowsql/cowsql
       dqlite-ref:
         description: dqlite branch or ref
         default: master
@@ -34,7 +34,7 @@ jobs:
         [ '0', '1' ]
       jepsen-dqlite-repo: ${{ github.repository }}
       jepsen-dqlite-ref: ${{ github.ref }}
-      raft-repo: ${{ inputs.raft-repo || 'canonical/raft' }}
+      raft-repo: ${{ inputs.raft-repo || 'cowsql/raft' }}
       raft-ref: ${{ inputs.raft-ref || 'master' }}
-      dqlite-repo: ${{ inputs.dqlite-repo || 'canonical/dqlite' }}
+      dqlite-repo: ${{ inputs.dqlite-repo || 'cowsql/cowsql' }}
       dqlite-ref: ${{ inputs.dqlite-ref || 'master' }}

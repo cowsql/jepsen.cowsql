@@ -5,13 +5,13 @@ on:
     inputs:
       raft-repo:
         description: 'raft repo'
-        default: 'canonical/raft'
+        default: 'cowsql/raft'
       raft-ref:
         description: 'raft branch or ref'
         default: 'master'
       dqlite-repo:
         description: 'dqlite repo'
-        default: 'canonical/dqlite'
+        default: 'cowsql/cowsql'
       dqlite-ref:
         description: 'dqlite branch or ref'
         default: 'master'
@@ -38,7 +38,7 @@ on:
       jepsen-dqlite-repo:
         type: string
         required: false
-        default: 'canonical/jepsen.dqlite'
+        default: 'cowsql/jepsen.ribon'
       jepsen-dqlite-ref:
         type: string
         required: false
@@ -81,9 +81,9 @@ on:
         required: false
 
 env:
-  RAFT_REPO:   'canonical/raft'
+  RAFT_REPO:   'cowsql/raft'
   RAFT_BRANCH: 'master'
-  DQLITE_REPO:   'canonical/dqlite'
+  DQLITE_REPO:   'cowsql/cowsql'
   DQLITE_BRANCH: 'master'
   GO_DQLITE_REPO: 'canonical/go-dqlite'
   GO_DQLITE_BRANCH: 'master'
