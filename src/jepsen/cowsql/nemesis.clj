@@ -1,10 +1,10 @@
-(ns jepsen.dqlite.nemesis
-  "Nemeses for Dqlite"
+(ns jepsen.cowsql.nemesis
+  "Nemeses for Cowsql"
   (:require [jepsen
              [control :as c]
              [nemesis :as n]
              [generator :as gen]]
-            [jepsen.dqlite.db :as db]
+            [jepsen.cowsql.db :as db]
             [jepsen.nemesis.combined :as nc]))
 
 (defn member-nemesis
@@ -51,7 +51,7 @@
 
 (defn stop-nemesis
   "A nemesis which responds to `:stop-node` and `:start-node` by politely
-  stopping and starting the dqlite app."
+  stopping and starting the cowsql app."
   [db]
   (reify
     n/Nemesis
@@ -71,7 +71,7 @@
       #{:start-node :stop-node})))
 
 (defn stop-package
-  "A nemesis package for politely stopping and restarting the dqlite app."
+  "A nemesis package for politely stopping and restarting the cowsql app."
   [{:keys [faults stop db interval] :as _opts}]
   (when (:stop faults)
     (let [targets (:targets stop)
@@ -126,7 +126,7 @@
             :color "#90EE90"}}})
 
 (defn nemesis-package
-  "Constructs a nemesis and generators for dqlite."
+  "Constructs a nemesis and generators for cowsql."
   [opts]
   (let [opts (update opts :faults set)]
     (->> (concat [(nc/partition-package opts)

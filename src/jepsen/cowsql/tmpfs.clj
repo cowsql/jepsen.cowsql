@@ -1,4 +1,4 @@
-(ns jepsen.dqlite.tmpfs
+(ns jepsen.cowsql.tmpfs
   "Provides a database and nemesis package which can work together to fill up
   disk space."
   (:require [clojure.tools.logging :refer [info warn]]

@@ -1,4 +1,4 @@
-name: Dqlite Jepsen tests - expected pass
+name: Cowsql Jepsen tests - expected pass
 
 on:
   push:
@@ -13,11 +13,11 @@ on:
       raft-ref:
         description: raft branch or ref
         default: master
-      dqlite-repo:
-        description: dqlite repo
+      cowsql-repo:
+        description: cowsql repo
         default: cowsql/cowsql
-      dqlite-ref:
-        description: dqlite branch or ref
+      cowsql-ref:
+        description: cowsql branch or ref
         default: master
 
 jobs:
@@ -32,9 +32,9 @@ jobs:
           'packet,stop', 'pause', 'partition,disk', 'pause,disk' ]
       disk: >
         [ '0' ]
-      jepsen-dqlite-repo: ${{ github.repository }}
-      jepsen-dqlite-ref: ${{ github.ref }}
+      jepsen-cowsql-repo: ${{ github.repository }}
+      jepsen-cowsql-ref: ${{ github.ref }}
       raft-repo: ${{ inputs.raft-repo || 'cowsql/raft' }}
       raft-ref: ${{ inputs.raft-ref || 'master' }}
-      dqlite-repo: ${{ inputs.dqlite-repo || 'cowsql/cowsql' }}
-      dqlite-ref: ${{ inputs.dqlite-ref || 'master' }}
+      cowsql-repo: ${{ inputs.cowsql-repo || 'cowsql/cowsql' }}
+      cowsql-ref: ${{ inputs.cowsql-ref || 'master' }}

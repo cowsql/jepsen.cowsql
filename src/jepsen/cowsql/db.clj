@@ -1,4 +1,4 @@
-(ns jepsen.dqlite.db
+(ns jepsen.cowsql.db
   (:require [clojure.tools.logging :refer :all]
             [clojure.string :as str]
             [jepsen [control :as c]
@@ -6,10 +6,10 @@
                     [util :as util :refer [timeout meh]]]
             [jepsen.control.util :as cu]
             [jepsen.os.debian :as debian]
-            [jepsen.dqlite [client :as client]]
+            [jepsen.cowsql [client :as client]]
             [slingshot.slingshot :refer [try+ throw+]]))
 
-(def dir "/opt/dqlite")
+(def dir "/opt/cowsql")
 (def bin "app")
 (def binary (str dir "/" bin))
 (def logfile (str dir "/app.log"))
@@ -18,24 +18,24 @@
 (def core-dump-glob (str data-dir "/core*"))
 
 (defn setup-ppa!
-  "Adds the Dqlite PPA to the APT sources"
+  "Adds the Cowsql PPA to the APT sources"
   [version]
   (let [keyserver "keyserver.ubuntu.com"
         key       "392A47B5A84EACA9B2C43CDA06CD096F50FB3D04"
-        line      (str "deb http://ppa.launchpad.net/dqlite/"
+        line      (str "deb http://ppa.launchpad.net/cowsql/"
                        version "/ubuntu focal main")]
-    (debian/add-repo! "dqlite" line keyserver key)))
+    (debian/add-repo! "cowsql" line keyserver key)))
 
 (defn install!
-  "Install the Go dqlite test application."
+  "Install the Go cowsql test application."
   [test node]
 
-  ;; If we're not running in local mode, install libdqlite from the PPA.
+  ;; If we're not running in local mode, install libcowsql from the PPA.
   (when-not (:local test)
-    (info "Installing libdqlite from PPA")
+    (info "Installing libcowsql from PPA")
     (c/su
      (setup-ppa! (:version test))
-     (debian/install [:libdqlite0])))
+     (debian/install [:libcowsql0])))
 
   ;; Create the test directory.
   (let [user (c/exec :whoami)]
@@ -48,20 +48,20 @@
   (if-let [pre-built-binary (:binary test)]
     (c/upload pre-built-binary binary)
     (let [source (str dir "/app.go")]
-      (info "Building test dqlite application from source")
-      (c/su (debian/install [:libdqlite-dev :golang]))
+      (info "Building test cowsql application from source")
+      (c/su (debian/install [:libcowsql-dev :golang]))
       (c/upload "resources/app.go" source)
-      (c/exec "go" "get" "-tags" "libsqlite3" "github.com/canonical/go-dqlite/app")
+      (c/exec "go" "get" "-tags" "libsqlite3" "github.com/cowsql/go-cowsql/app")
       (c/exec "go" "build" "-tags" "libsqlite3" "-o" binary source))))
 
 (defn start!
-  "Start the Go dqlite test application"
+  "Start the Go cowsql test application"
   [test node]
   (if (cu/daemon-running? pidfile)
     :already-running
     (c/su
       (c/exec :mkdir :-p data-dir)
-      (cu/start-daemon! {:env {:LIBDQLITE_TRACE "1"
+      (cu/start-daemon! {:env {:LIBCOWSQL_TRACE "1"
                                :LIBRAFT_TRACE "1"}
                          :logfile logfile
                          :pidfile pidfile
@@ -74,7 +74,7 @@
                         :-cluster (str/join "," (:nodes test))))))
 
 (defn kill!
-  "Gracefully kill, `SIGTERM`, the Go dqlite test application."
+  "Gracefully kill, `SIGTERM`, the Go cowsql test application."
   [_test node]
   (let [signal :SIGTERM]
     (info "Killing" bin "with" signal "on" node)
@@ -83,7 +83,7 @@
     :killed))
 
 (defn stop!
-  "Stop the Go dqlite test application with `stop-daemon!`,
+  "Stop the Go cowsql test application with `stop-daemon!`,
    which will `SIGKILL`."
   [_test _node]
   (if (not (cu/daemon-running? pidfile))
@@ -213,7 +213,7 @@
        set))
 
 (defn db
-  "Dqlite test application. Takes a tmpfs DB which is set up prior to setting
+  "Cowsql test application. Takes a tmpfs DB which is set up prior to setting
   up this DB."
   [tmpfs]
   (let [primary-cache  (atom [])
@@ -255,7 +255,7 @@
         (kill! test node)
         (when tmpfs
           (db/teardown! tmpfs test node))
-        (Thread/sleep 200) ; avoid race: rm: cannot remove '/opt/dqlite/data': Directory not empty
+        (Thread/sleep 200) ; avoid race: rm: cannot remove '/opt/cowsql/data': Directory not empty
         (c/su (c/exec :rm :-rf dir)))
 
       db/LogFiles

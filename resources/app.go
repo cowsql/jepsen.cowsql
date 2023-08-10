@@ -21,18 +21,18 @@ import (
 
 	"golang.org/x/sync/semaphore"
 
-	"github.com/canonical/go-dqlite"
-	"github.com/canonical/go-dqlite/app"
-	"github.com/canonical/go-dqlite/client"
-	"github.com/canonical/go-dqlite/driver"
+	"github.com/cowsql/go-cowsql"
+	"github.com/cowsql/go-cowsql/app"
+	"github.com/cowsql/go-cowsql/client"
+	"github.com/cowsql/go-cowsql/driver"
 )
 
 const (
-	port   = 8080 // This is the API port, the internal dqlite port+1
+	port   = 8080 // This is the API port, the internal cowsql port+1
 	schema = "CREATE TABLE IF NOT EXISTS map (key INT, value INT)"
 )
 
-func dqliteLog(l client.LogLevel, format string, a ...interface{}) {
+func cowsqlLog(l client.LogLevel, format string, a ...interface{}) {
 	log.Printf(fmt.Sprintf("%s: %s\n", l.String(), format), a...)
 }
 
@@ -40,7 +40,7 @@ func makeAddress(host string, port int) string {
 	return fmt.Sprintf("%s:%d", host, port)
 }
 
-// Return the dqlite addresses of all nodes preceeding the given one.
+// Return the cowsql addresses of all nodes preceeding the given one.
 //
 // E.g. with node="n2" and cluster="n1,n2,n3" return ["n1:8081"]
 func preceedingAddresses(node string, nodes []string) []string {
@@ -57,7 +57,7 @@ func preceedingAddresses(node string, nodes []string) []string {
 	return preceeding
 }
 
-// Return the dqlite addresses of all nodes different from the given one.
+// Return the cowsql addresses of all nodes different from the given one.
 func otherAddresses(node string, nodes []string) []string {
 	others := []string{}
 	for _, name := range nodes {
@@ -91,7 +91,7 @@ func withTx(db *sql.DB, f func(tx *sql.Tx) error) error {
 // Probe all given nodes for connectivity and metadata, then return a
 // RolesChanges object.
 //
-// Adapted from the private method of the same name in go-dqlite/app.
+// Adapted from the private method of the same name in go-cowsql/app.
 func makeRolesChanges(a *app.App, nodes []client.NodeInfo, roles app.RolesConfig) app.RolesChanges {
 	state := map[client.NodeInfo]*client.NodeMetadata{}
 	for _, node := range nodes {
@@ -120,7 +120,7 @@ func makeRolesChanges(a *app.App, nodes []client.NodeInfo, roles app.RolesConfig
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
 
-			cli, err := client.New(ctx, node.Address, client.WithLogFunc(dqliteLog))
+			cli, err := client.New(ctx, node.Address, client.WithLogFunc(cowsqlLog))
 			if err == nil {
 				metadata, err := cli.Describe(ctx)
 				if err == nil {
@@ -616,10 +616,10 @@ func main() {
 	nodes := strings.Split(*cluster, ",")
 	options := []app.Option{
 		app.WithAddress(makeAddress(addr.IP.String(), port+1)),
-		app.WithLogFunc(dqliteLog),
+		app.WithLogFunc(cowsqlLog),
 		app.WithNetworkLatency(time.Duration(*latency) * time.Millisecond),
 		app.WithRolesAdjustmentFrequency(time.Second),
-		app.WithSnapshotParams(dqlite.SnapshotParams{Threshold: 128, Trailing: 1024}),
+		app.WithSnapshotParams(cowsql.SnapshotParams{Threshold: 128, Trailing: 1024}),
 		app.WithDiskMode(*disk != 0),
 		app.WithAutoRecovery(false),
 	}
@@ -632,7 +632,7 @@ func main() {
 		options = append(options, app.WithCluster(preceedingAddresses(*node, nodes)))
 	}
 
-	// Spawn the dqlite server thread.
+	// Spawn the cowsql server thread.
 	a, err := app.New(*dir, options...)
 	if err != nil {
 		log.Fatalf("create app: %v", err)
