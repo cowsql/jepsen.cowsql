@@ -1,8 +1,8 @@
-(ns jepsen.dqlite.append
+(ns jepsen.cowsql.append
   "Test for transactional list append."
   (:require [jepsen [client :as client]]
             [jepsen.tests.cycle.append :as append]
-            [jepsen.dqlite [client :as c]]))
+            [jepsen.cowsql [client :as c]]))
 
 (defrecord Client [conn]
   client/Client

@@ -1,9 +1,9 @@
-(ns jepsen.dqlite.set
+(ns jepsen.cowsql.set
   (:require [clojure.string :as str]
             [jepsen [client :as client]
                     [checker :as checker]
                     [generator :as gen]]
-            [jepsen.dqlite [client :as c]])
+            [jepsen.cowsql [client :as c]])
   (:import (java.net ConnectException SocketException)))
 
 (defn parse-list

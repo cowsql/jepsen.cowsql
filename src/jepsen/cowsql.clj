@@ -1,4 +1,4 @@
-(ns jepsen.dqlite
+(ns jepsen.cowsql
   (:gen-class)
   (:refer-clojure :exclude [test])
   (:require [clojure.java.shell :refer [sh]]
@@ -12,7 +12,7 @@
                     [util :as u]]
             [jepsen.os.ubuntu :as ubuntu]
             [jepsen.os.container :as container]
-            [jepsen.dqlite [db :as db]
+            [jepsen.cowsql [db :as db]
                            [control :as c]
                            [bank :as bank]
                            [set :as set]
@@ -77,7 +77,7 @@
                       (map name)
                       (str/join "-"))
         num-nodes (count nodes)]
-    (str "dqlite"
+    (str "cowsql"
          "-" workload
          "-" nemesis
          "-" num-nodes "n" concurrency "c"
@@ -166,7 +166,7 @@
 
 (def cli-opts
   "Command line options for tools.cli"
-  [["-v" "--version VERSION" "What version of Dqlite should to install"
+  [["-v" "--version VERSION" "What version of Cowsql should to install"
     :default "master"]
 
    [nil "--nemesis FAULTS" "A comma-separated list of nemesis faults to enable"
@@ -204,7 +204,7 @@
     :parse-fn parse-long
     :validate [pos? "Must be a positive number."]]
 
-   ["-b" "--binary BINARY" "Use the given pre-built dqlite test application binary."
+   ["-b" "--binary BINARY" "Use the given pre-built cowsql test application binary."
     :default nil]
 
    [nil "--cluster-setup-timeout SECS" "How long to wait for the cluster to be ready."

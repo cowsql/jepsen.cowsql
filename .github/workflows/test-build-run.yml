@@ -1,25 +1,25 @@
-name: Callable Dqlite Jepsen tests
+name: Callable Cowsql Jepsen tests
 
 on:
   workflow_dispatch:
     inputs:
       raft-repo:
         description: 'raft repo'
-        default: 'canonical/raft'
+        default: 'cowsql/raft'
       raft-ref:
         description: 'raft branch or ref'
         default: 'master'
-      dqlite-repo:
-        description: 'dqlite repo'
-        default: 'canonical/dqlite'
-      dqlite-ref:
-        description: 'dqlite branch or ref'
+      cowsql-repo:
+        description: 'cowsql repo'
+        default: 'cowsql/cowsql'
+      cowsql-ref:
+        description: 'cowsql branch or ref'
         default: 'master'
-      go-dqlite-repo:
-        description: 'go-dqlite repo'
-        default: 'canonical/go-dqlite'
-      go-dqlite-ref:
-        description: 'go-dqlite branch or ref'
+      go-cowsql-repo:
+        description: 'go-cowsql repo'
+        default: 'cowsql/go-cowsql'
+      go-cowsql-ref:
+        description: 'go-cowsql branch or ref'
         default: 'master'
       workloads:
         description: 'Jepsen workloads as JSON, e.g. [ append, bank ]'
@@ -28,18 +28,18 @@ on:
         description: "Jepsen nemesis as JSON, e.g. [ 'pause,disk' ]"
         required: true
       disk:
-        description: "Enable or disable dqlite's disk-mode e.g. [ '0', '1' ]"
+        description: "Enable or disable cowsql's disk-mode e.g. [ '0', '1' ]"
         required: true
       cli-opts:
         description: 'Jepsen cli opts, e.g. --node-targets primaries'
         required: false
   workflow_call:
     inputs:
-      jepsen-dqlite-repo:
+      jepsen-cowsql-repo:
         type: string
         required: false
-        default: 'canonical/jepsen.dqlite'
-      jepsen-dqlite-ref:
+        default: 'cowsql/jepsen.ribon'
+      jepsen-cowsql-ref:
         type: string
         required: false
         default: 'master'
@@ -55,16 +55,16 @@ on:
       raft-ref:
         type: string
         required: false
-      dqlite-repo:
+      cowsql-repo:
         type: string
         required: false
-      dqlite-ref:
+      cowsql-ref:
         type: string
         required: false
-      go-dqlite-repo:
+      go-cowsql-repo:
         type: string
         required: false
-      go-dqlite-ref:
+      go-cowsql-ref:
         type: string
         required: false
       workloads:
@@ -81,12 +81,12 @@ on:
         required: false
 
 env:
-  RAFT_REPO:   'canonical/raft'
+  RAFT_REPO:   'cowsql/raft'
   RAFT_BRANCH: 'master'
-  DQLITE_REPO:   'canonical/dqlite'
-  DQLITE_BRANCH: 'master'
-  GO_DQLITE_REPO: 'canonical/go-dqlite'
-  GO_DQLITE_BRANCH: 'master'
+  COWSQL_REPO:   'cowsql/cowsql'
+  COWSQL_BRANCH: 'master'
+  GO_COWSQL_REPO: 'cowsql/go-cowsql'
+  GO_COWSQL_BRANCH: 'master'
 
 jobs:
   test:
@@ -102,8 +102,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        repository: ${{ inputs.jepsen-dqlite-repo || github.repository }}
-        ref: ${{ inputs.jepsen-dqlite-ref || github.ref }}
+        repository: ${{ inputs.jepsen-cowsql-repo || github.repository }}
+        ref: ${{ inputs.jepsen-cowsql-ref || github.ref }}
 
     - name: Cache Go modules
       uses: actions/cache@v3
@@ -170,16 +170,16 @@ jobs:
         sudo make install
         sudo ldconfig
 
-    - name: Check out dqlite
+    - name: Check out cowsql
       uses: actions/checkout@v3
       with:
-        repository: ${{ inputs.dqlite-repo || env.DQLITE_REPO }}
-        ref: ${{ inputs.dqlite-ref || env.DQLITE_REF }}
-        path: dqlite
+        repository: ${{ inputs.cowsql-repo || env.COWSQL_REPO }}
+        ref: ${{ inputs.cowsql-ref || env.COWSQL_REF }}
+        path: cowsql
 
-    - name: Build dqlite
+    - name: Build cowsql
       run: |
-        cd dqlite
+        cd cowsql
         git log -n 1
         autoreconf -i
         ./configure --enable-debug --enable-backtrace
@@ -193,7 +193,7 @@ jobs:
       timeout-minutes: 8
       run: |
         go get golang.org/x/sync/semaphore
-        go get -tags libsqlite3 github.com/canonical/go-dqlite/app@master
+        go get -tags libsqlite3 github.com/cowsql/go-cowsql/app
         go build -tags libsqlite3 -o resources/app resources/app.go
         sudo ufw disable
         sleep 0.200
@@ -219,9 +219,9 @@ jobs:
       with:
         name: jepsen-data-${{ matrix.workload }}-${{ matrix.nemesis }}-summary
         path: |
-          store/dqlite*/**/results.edn
-          store/dqlite*/**/latency-raw.png
-          store/dqlite*/**/tail-jepsen.log
+          store/cowsql*/**/results.edn
+          store/cowsql*/**/latency-raw.png
+          store/cowsql*/**/tail-jepsen.log
           !**/current/
           !**/latest/
 
@@ -231,6 +231,6 @@ jobs:
       with:
         name: jepsen-data-${{ matrix.workload }}-${{ matrix.nemesis }}-failure
         path: |
-          store/dqlite*
+          store/cowsql*
           !**/current/
           !**/latest/

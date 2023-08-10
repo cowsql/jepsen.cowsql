@@ -1,4 +1,4 @@
-(ns jepsen.dqlite.control
+(ns jepsen.cowsql.control
   "Implements the Remote protocol to run commands locally."
   (:require [clojure.tools.logging :refer :all]
             [clojure.string :as str]

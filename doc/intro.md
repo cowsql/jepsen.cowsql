@@ -1,3 +1,3 @@
-# Introduction to jepsen.dqlite
+# Introduction to jepsen.cowsql
 
 TODO: write [great documentation](http://jacobian.org/writing/what-to-write/)

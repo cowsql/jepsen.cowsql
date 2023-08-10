@@ -1,5 +1,5 @@
-(ns jepsen.dqlite.client
-  "Helper functions for interacting with the test Dqlite application."
+(ns jepsen.cowsql.client
+  "Helper functions for interacting with the test Cowsql application."
   (:require [clojure.tools.logging :refer [info warn]]
             [clojure.string :as str]
             [clojure.edn :as edn]
@@ -9,7 +9,7 @@
   (:import (java.net ConnectException SocketException SocketTimeoutException)))
 
 (defn endpoint
-  "The root HTTP URL of the test Dqlite application API endpoint on a node."
+  "The root HTTP URL of the test Cowsql application API endpoint on a node."
   [node]
   (str "http://" (name node) ":" 8080))
 
@@ -38,7 +38,7 @@
           (edn/read-string response)))))
 
 (defn leader
-  "Return the node name of the current Dqlite leader."
+  "Return the node name of the current Cowsql leader."
   [test node]
   (let [conn (open test node)
         leader (request conn "GET" "/leader")]
@@ -90,7 +90,7 @@
            (assoc ~op :type :info, :error :timeout))
          (catch [:msg "Error: disk I/O error"] e#
            (assoc ~op :type :info, :error :disk-io-error))
-         (catch [:msg "Error: failed to create dqlite connection: no available dqlite leader server found"] e#
+         (catch [:msg "Error: failed to create cowsql connection: no available cowsql leader server found"] e#
            (assoc ~op :type :fail, :error :unavailable))
          (catch [:msg "Error: driver: bad connection"] e#
            (assoc ~op :type (if (= (:f ~op) :read) :fail :info), :error :bad-connection))

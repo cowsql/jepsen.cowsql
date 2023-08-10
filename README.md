@@ -1,12 +1,12 @@
-# Dqlite Jepsen Test
+# CowSQL Jepsen Test
 
-A Clojure library designed to test Dqlite, an embedded SQL database with Raft
+A Clojure library designed to test CowSQL, an embedded SQL database with Raft
 consensus.
 
 ## What is being tested?
 
 The tests run concurrent operations to some shared data from different nodes in
-a Dqlite cluster, checking that the operations preserve the consistency
+a CowSQL cluster, checking that the operations preserve the consistency
 properties defined in each test.  During the tests, various combinations of
 nemeses can be added to interfere with the database operations and exercise the
 database's consistency protocols.
@@ -35,7 +35,7 @@ See `lein run test --help` and `lein run test-all --help` for options.
 #### Nemeses
 
 + **none** no nemesis
-+ **kill** kills random Dqlite test application processes
++ **kill** kills random CowSQL test application processes
 + **partition** network partitions
 + **pause** process pauses
 + **member** remove or re-add a node

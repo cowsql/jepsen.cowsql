@@ -1,7 +1,7 @@
-(ns jepsen.dqlite.bank
+(ns jepsen.cowsql.bank
   "Implements a bank-account test, where we transfer amounts between a pool of
   accounts, and verify that reads always see a constant amount."
-  (:require [jepsen.dqlite [client :as c]]
+  (:require [jepsen.cowsql [client :as c]]
             [jepsen [client :as client]
                     [generator :as gen]]
             [jepsen.tests.bank :as bank]))
