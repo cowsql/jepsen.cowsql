@@ -30,7 +30,7 @@ on:
 
 jobs:
   custom-dispatch:
-    uses: cowsql/jepsen.ribon/.github/workflows/test-build-run.yml@master
+    uses: cowsql/jepsen.ribon/.github/workflows/test-build-run.yml
     with:
       workloads: ${{ inputs.workloads }}
       nemeses: ${{ inputs.nemeses }}

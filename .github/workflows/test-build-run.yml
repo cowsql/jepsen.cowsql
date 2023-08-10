@@ -193,7 +193,7 @@ jobs:
       timeout-minutes: 8
       run: |
         go get golang.org/x/sync/semaphore
-        go get -tags libsqlite3 github.com/cowsql/go-cowsql/app@master
+        go get -tags libsqlite3 github.com/cowsql/go-cowsql/app
         go build -tags libsqlite3 -o resources/app resources/app.go
         sudo ufw disable
         sleep 0.200
