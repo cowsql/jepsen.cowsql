@@ -117,7 +117,7 @@ jobs:
           ${{ runner.os }}-clojure
 
     - name: Install Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
 
     - name: Setup environment
       timeout-minutes: 15
