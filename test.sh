@@ -110,8 +110,8 @@ run() {
 	test "$(sysctl -n fs.suid_dumpable)" -gt 0 || exit 1
 	push-this-repo
 	lxc exec $jepsen -- \
-		env RAFT_BRANCH="${RAFT_BRANCH:-cowsql/master}" \
-		    COWSQL_BRANCH="${COWSQL_BRANCH:-cowsql/master}" \
+		env RAFT_BRANCH="${RAFT_BRANCH:-cowsql/main}" \
+		    COWSQL_BRANCH="${COWSQL_BRANCH:-cowsql/main}" \
 		    "$workspace/jepsen.cowsql/test.sh" run-inner "$@"
 }
 
