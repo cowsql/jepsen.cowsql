@@ -12,13 +12,13 @@ on:
         default: cowsql/raft
       raft-ref:
         description: raft branch or ref
-        default: master
+        default: main
       cowsql-repo:
         description: cowsql repo
         default: cowsql/cowsql
       cowsql-ref:
         description: cowsql branch or ref
-        default: master
+        default: main
 
 jobs:
   expected-pass:
@@ -35,6 +35,6 @@ jobs:
       jepsen-cowsql-repo: ${{ github.repository }}
       jepsen-cowsql-ref: ${{ github.ref }}
       raft-repo: ${{ inputs.raft-repo || 'cowsql/raft' }}
-      raft-ref: ${{ inputs.raft-ref || 'master' }}
+      raft-ref: ${{ inputs.raft-ref || 'main' }}
       cowsql-repo: ${{ inputs.cowsql-repo || 'cowsql/cowsql' }}
-      cowsql-ref: ${{ inputs.cowsql-ref || 'master' }}
+      cowsql-ref: ${{ inputs.cowsql-ref || 'main' }}

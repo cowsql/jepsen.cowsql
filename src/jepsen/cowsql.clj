@@ -167,7 +167,7 @@
 (def cli-opts
   "Command line options for tools.cli"
   [["-v" "--version VERSION" "What version of Cowsql should to install"
-    :default "master"]
+    :default "main"]
 
    [nil "--nemesis FAULTS" "A comma-separated list of nemesis faults to enable"
     :parse-fn parse-nemesis-spec

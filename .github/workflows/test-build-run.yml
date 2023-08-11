@@ -8,19 +8,19 @@ on:
         default: 'cowsql/raft'
       raft-ref:
         description: 'raft branch or ref'
-        default: 'master'
+        default: 'main'
       cowsql-repo:
         description: 'cowsql repo'
         default: 'cowsql/cowsql'
       cowsql-ref:
         description: 'cowsql branch or ref'
-        default: 'master'
+        default: 'main'
       go-cowsql-repo:
         description: 'go-cowsql repo'
         default: 'cowsql/go-cowsql'
       go-cowsql-ref:
         description: 'go-cowsql branch or ref'
-        default: 'master'
+        default: 'main'
       workloads:
         description: 'Jepsen workloads as JSON, e.g. [ append, bank ]'
         required: true
@@ -42,7 +42,7 @@ on:
       jepsen-cowsql-ref:
         type: string
         required: false
-        default: 'master'
+        default: 'main'
       jepsen-repo:
         type: string
         required: false
@@ -82,11 +82,11 @@ on:
 
 env:
   RAFT_REPO:   'cowsql/raft'
-  RAFT_BRANCH: 'master'
+  RAFT_BRANCH: 'main'
   COWSQL_REPO:   'cowsql/cowsql'
-  COWSQL_BRANCH: 'master'
+  COWSQL_BRANCH: 'main'
   GO_COWSQL_REPO: 'cowsql/go-cowsql'
-  GO_COWSQL_BRANCH: 'master'
+  GO_COWSQL_BRANCH: 'main'
 
 jobs:
   test:
