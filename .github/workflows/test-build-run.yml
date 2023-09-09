@@ -27,9 +27,6 @@ on:
       nemeses:
         description: "Jepsen nemesis as JSON, e.g. [ 'pause,disk' ]"
         required: true
-      disk:
-        description: "Enable or disable cowsql's disk-mode e.g. [ '0', '1' ]"
-        required: true
       cli-opts:
         description: 'Jepsen cli opts, e.g. --node-targets primaries'
         required: false
@@ -73,9 +70,6 @@ on:
       nemeses:
         type: string
         required: true
-      disk:
-        type: string
-        required: true
       cli-opts:
         type: string
         required: false
@@ -95,7 +89,6 @@ jobs:
       matrix:
         workload: ${{ fromJSON(inputs.workloads) }}
         nemesis: ${{ fromJSON(inputs.nemeses) }}
-        disk: ${{ fromJSON(inputs.disk) }}
     runs-on: ubuntu-20.04
     timeout-minutes: 25
     steps:
@@ -205,7 +198,6 @@ jobs:
           --nemesis ${{ matrix.nemesis }} \
           --rate 100 \
           --time-limit $(cat time-limit) \
-          --disk ${{ matrix.disk }} \
           ${{ inputs.cli-opts }}
         sudo ./resources/network.sh teardown 5
 
