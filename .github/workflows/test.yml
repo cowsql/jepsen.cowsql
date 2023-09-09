@@ -30,8 +30,6 @@ jobs:
         [ 'none', 'partition', 'kill', 'stop', 'disk', 'member',
           'partition,stop', 'partition,kill', 'partition,member',
           'packet,stop', 'pause', 'partition,disk', 'pause,disk' ]
-      disk: >
-        [ '0' ]
       jepsen-cowsql-repo: ${{ github.repository }}
       jepsen-cowsql-ref: ${{ github.ref }}
       raft-repo: ${{ inputs.raft-repo || 'cowsql/raft' }}
