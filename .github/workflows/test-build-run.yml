@@ -35,7 +35,7 @@ on:
       jepsen-cowsql-repo:
         type: string
         required: false
-        default: 'cowsql/jepsen.ribon'
+        default: 'cowsql/jepsen.cowsql'
       jepsen-cowsql-ref:
         type: string
         required: false
