@@ -89,7 +89,7 @@ jobs:
       matrix:
         workload: ${{ fromJSON(inputs.workloads) }}
         nemesis: ${{ fromJSON(inputs.nemeses) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
     - name: Checkout code
