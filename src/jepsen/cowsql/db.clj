@@ -57,20 +57,19 @@
 (defn start!
   "Start the Go cowsql test application"
   [test node]
+  (c/exec :mkdir :-p data-dir)
   (if (cu/daemon-running? pidfile)
     :already-running
-    (c/su
-      (c/exec :mkdir :-p data-dir)
-      (cu/start-daemon! {:env {:LIBCOWSQL_TRACE "1"
-                               :LIBRAFT_TRACE "1"}
-                         :logfile logfile
-                         :pidfile pidfile
-                         :chdir   data-dir}
-                        binary
-                        :-dir data-dir
-                        :-node (name node)
-                        :-latency (:latency test)
-                        :-cluster (str/join "," (:nodes test))))))
+    (cu/start-daemon! {:env {:LIBCOWSQL_TRACE "1"
+                             :LIBRAFT_TRACE "1"}
+                       :logfile logfile
+                       :pidfile pidfile
+                       :chdir   data-dir}
+                      binary
+                      :-dir data-dir
+                      :-node (name node)
+                      :-latency (:latency test)
+                      :-cluster (str/join "," (:nodes test)))))
 
 (defn kill!
   "Gracefully kill, `SIGTERM`, the Go cowsql test application."
