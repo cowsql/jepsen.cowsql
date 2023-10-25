@@ -203,6 +203,9 @@
    ["-b" "--binary BINARY" "Use the given pre-built cowsql test application binary."
     :default nil]
 
+   ["-d" "--dir DIR" "Directory to use to store node data."
+    :default "/srv/jepsen"]
+
    [nil "--cluster-setup-timeout SECS" "How long to wait for the cluster to be ready."
     :default 10
     :parse-fn parse-long
