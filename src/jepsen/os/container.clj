@@ -25,7 +25,7 @@
        c/just-stdout))
 
 (def unshare-command
-  (c/lit "unshare -p -n -m -f --kill-child --mount-proc sleep inf > /dev/null 2>&1 & jobs -p"))
+  (c/lit "unshare -n -f --kill-child sleep inf > /dev/null 2>&1 & jobs -p"))
 
 (def containers
   "Map node names to their container PID."
@@ -55,16 +55,16 @@
         ;; Set up networking.
         (exec :sudo :ip :link :add veth1 :type :veth :peer :name veth2)
         (exec :sudo :ip :link :set veth1 :netns pid)
-        (exec :sudo :nsenter :-p :-n :-m :-t pid :ip :addr :add addr :dev veth1)
-        (exec :sudo :nsenter :-p :-n :-m :-t pid :ip :link :set :dev veth1 :up)
-        (exec :sudo :nsenter :-p :-n :-m :-t pid :ip :link :set :dev :lo :up)
-        (exec :sudo :nsenter :-p :-n :-m :-t pid :ip :route :add :default :via "10.2.1.1")
+        (exec :sudo :nsenter :-n :-t pid :ip :addr :add addr :dev veth1)
+        (exec :sudo :nsenter :-n :-t pid :ip :link :set :dev veth1 :up)
+        (exec :sudo :nsenter :-n :-t pid :ip :link :set :dev :lo :up)
+        (exec :sudo :nsenter :-n :-t pid :ip :route :add :default :via "10.2.1.1")
         (exec :sudo :ip :link :set veth2 :up)
         (exec :sudo :ip :link :set veth2 :master bridge)
 
         ;; Set up /opt
         (exec :sudo :mkdir :-p node-dir)
-        (exec :sudo :nsenter :-p :-n :-m :-t pid :mount :--bind node-dir "/opt"))
+        (exec :sudo :nsenter :-n :-t pid :mount :--bind node-dir "/opt"))
 
       (meh (net/heal! (:net test) test)))
 
