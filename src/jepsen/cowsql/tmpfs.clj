@@ -10,18 +10,31 @@
             [jepsen.nemesis.combined :as nc]
             [slingshot.slingshot :refer [try+ throw+]]))
 
-(defrecord DB [dir size-mb]
+(defn app-dir
+  "Return the working directory where the app will store its data on the node."
+  [test node]
+  (str (:dir test) "/" (name node)))
+
+(defn app-data
+  "Return the path to the cowsql data directory that the app will use."
+  [test node]
+  (str (app-dir test node) "/data"))
+
+(defrecord DB [size-mb]
   db/DB
   (setup! [this test node]
-    (info "Setting up tmpfs at" dir)
-    (c/su (c/exec :mkdir :-p dir)
-          (c/exec :chmod 777 dir)
-          (c/exec :mount :-t :tmpfs :tmpfs dir
-                  :-o (str "size=" size-mb "M,mode=0755"))))
+    (let [dir (app-data test node)
+          uid (c/exec :id :-u)
+          gid (c/exec :id :-g)]
+      (info "Setting up tmpfs at" dir)
+      (c/exec :mkdir :-p dir)
+      (c/su (c/exec :mount :-t :tmpfs :tmpfs dir
+                    :-o (str "uid=" uid ",gid=" gid ",size=" size-mb "M,mode=0755")))))
 
   (teardown! [this test node]
-    (info "Unmounting tmpfs at" dir)
-    (c/su (meh (c/exec :umount :-l dir)))))
+    (let [dir (app-data test node)]
+      (info "Unmounting tmpfs at" dir)
+      (c/su (meh (c/exec :umount :-l dir))))))
 
 (def balloon-file
   "The name of the file which we use to eat up all available disk space."
@@ -29,18 +42,20 @@
 
 (defn fill!
   "Inflates the balloon file, causing the given DB to run out of disk space."
-  [db]
-  (c/su (try+ (c/exec :dd "if=/dev/zero" (str "of=" (:dir db) "/" balloon-file))
-              (catch [:type :jepsen.control/nonzero-exit] e
+  [test node db]
+  (let [dir (app-data test node)]
+    (c/su (try+ (c/exec :dd "if=/dev/zero" (str "of=" dir "/" balloon-file))
+                (catch [:type :jepsen.control/nonzero-exit] e
                 ; Normal, disk is full!
-                )))
-  :filled)
+                  )))
+    :filled))
 
 (defn free!
   "Releases the balloon file's data for the given DB."
-  [db]
-  (c/su (c/exec :rm :-f (str (:dir db) "/" balloon-file)))
-  :freed)
+  [test node db]
+  (let [dir (app-data test node)]
+    (c/su (c/exec :rm :-f (str dir "/" balloon-file)))
+    :freed))
 
 (defrecord Nemesis [db]
   nem/Nemesis
@@ -51,9 +66,9 @@
            (case (:f op)
              :fill-disk (let [targets (nc/db-nodes test (:db test) (:value op))]
                           (c/on-nodes test targets
-                                      (fn [_ _] (fill! db))))
+                                      (fn [test node] (fill! test node db))))
              :free-disk (c/on-nodes test
-                                    (fn [_ _] (free! db))))))
+                                    (fn [test node] (free! test node db))))))
 
   (teardown! [_this _test])
 
@@ -80,10 +95,9 @@
    ```"
   [{:keys [faults disk interval] :as _opts}]
   (when (:disk faults)
-    (let [{:keys [targets dir size-mb]} disk
-          _  (assert (string? dir))
+    (let [{:keys [targets size-mb]} disk
           _  (assert (pos? size-mb))
-          db (DB. dir size-mb)
+          db (DB. size-mb)
           fills (fn [_ _]
                    {:type  :info
                     :f     :fill-disk

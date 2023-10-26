@@ -98,7 +98,6 @@
                        :kill      {:targets (:node-targets opts)}
                        :interval  (:nemesis-interval opts)
                        :disk      {:targets (:node-targets opts)
-                                   :dir     db/data-dir
                                    :size-mb 100}}
         local         (:dummy? (:ssh opts))
         os            (if local container/os ubuntu/os)
