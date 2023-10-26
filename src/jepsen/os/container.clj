@@ -31,8 +31,6 @@
   "Map node names to their container PID."
   (atom {}))
 
-(def dir "/opt/jepsen")
-
 (def os
   (reify os/OS
     (setup! [_ test node]
@@ -47,8 +45,7 @@
             ;; The call to ps is a bit racey.
             sleep    (exec :sleep :0.2)
             pid      (str/trim (exec :ps :-o :pid= :--ppid ppid))
-            user     (System/getProperty "user.name")
-            node-dir (str dir "/" node)]
+            user     (System/getProperty "user.name")]
 
         (swap! containers assoc node pid)
 
@@ -60,11 +57,7 @@
         (exec :sudo :nsenter :-n :-t pid :ip :link :set :dev :lo :up)
         (exec :sudo :nsenter :-n :-t pid :ip :route :add :default :via "10.2.1.1")
         (exec :sudo :ip :link :set veth2 :up)
-        (exec :sudo :ip :link :set veth2 :master bridge)
-
-        ;; Set up /opt
-        (exec :sudo :mkdir :-p node-dir)
-        (exec :sudo :nsenter :-n :-t pid :mount :--bind node-dir "/opt"))
+        (exec :sudo :ip :link :set veth2 :master bridge))
 
       (meh (net/heal! (:net test) test)))
 
