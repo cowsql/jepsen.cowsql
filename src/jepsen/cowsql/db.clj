@@ -282,7 +282,9 @@
         (c/exec :rm :-rf (app-dir test node)))
 
       db/LogFiles
-      (log-files [_ test node]
+      (log-files [db test node]
+        (when (cu/daemon-running? (app-pidfile test node))
+          (db/pause! db test node))
         (let [tarball    (str (app-dir test node) "/data.tar.bz2")
               ls-cmd     (str "ls " (app-core-dump-glob test node))
               lines      (-> (try (c/exec "sh" "-c" ls-cmd)
@@ -296,6 +298,8 @@
           (try
             (c/exec :tar :cjf tarball (app-data test node))
             (catch Exception e (info "caught exception: " (.getMessage e))))
+          (when (cu/daemon-running? (app-pidfile test node))
+            (db/resume! db test node))
           everything))
 
       db/Process
