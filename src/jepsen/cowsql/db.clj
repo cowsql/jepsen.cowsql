@@ -9,13 +9,40 @@
             [jepsen.cowsql [client :as client]]
             [slingshot.slingshot :refer [try+ throw+]]))
 
-(def dir "/opt/cowsql")
-(def bin "app")
-(def binary (str dir "/" bin))
-(def logfile (str dir "/app.log"))
-(def pidfile (str dir "/app.pid"))
-(def data-dir (str dir "/data"))
-(def core-dump-glob (str data-dir "/core*"))
+(defn app-dir
+  "Return the working directory where the app will store its data on the node."
+  [test node]
+  (str (:dir test) "/" (name node)))
+
+(defn app-name
+  "Return the name of the application binary inside the app working directory."
+  [node]
+  (str "app-" (name node)))
+
+(defn app-binary
+  "Return the path to the app binary file inside the app working directory."
+  [test node]
+  (str (app-dir test node) "/" (app-name node)))
+
+(defn app-logfile
+  "Return the path to the app log file inside the app working directory."
+  [test node]
+  (str (app-dir test node) "/app.log"))
+
+(defn app-pidfile
+  "Return the path to the app PID file inside the app working directory."
+  [test node]
+  (str (app-dir test node) "/app.pid"))
+
+(defn app-data
+  "Return the path to the cowsql data directory that the app will use."
+  [test node]
+  (str (app-dir test node) "/data"))
+
+(defn app-core-dump-glob
+  "Return the core dump file glob pattern."
+  [test node]
+  (str (app-data test node) "/core*"))
 
 (defn setup-ppa!
   "Adds the Cowsql PPA to the APT sources"
@@ -37,59 +64,53 @@
      (setup-ppa! (:version test))
      (debian/install [:libcowsql0])))
 
-  ;; Create the test directory.
-  (let [user (c/exec :whoami)]
-    (c/su
-     (c/exec :mkdir :-p dir)
-     (c/exec :chown user dir)))
+  ;; Create the test application working directory.
+  (c/exec :mkdir :-p (app-dir test node))
 
   ;; If we were given a pre-built binary, copy it over, otherwise build it from
   ;; source.
   (if-let [pre-built-binary (:binary test)]
-    (c/upload pre-built-binary binary)
-    (let [source (str dir "/app.go")]
+    (c/upload pre-built-binary (app-binary test node))
+    (let [source (str (app-dir test node) "/app.go")]
       (info "Building test cowsql application from source")
       (c/su (debian/install [:libcowsql-dev :golang]))
       (c/upload "resources/app.go" source)
       (c/exec "go" "get" "-tags" "libsqlite3" "github.com/cowsql/go-cowsql/app")
-      (c/exec "go" "build" "-tags" "libsqlite3" "-o" binary source))))
+      (c/exec "go" "build" "-tags" "libsqlite3" "-o" (app-binary test node) source))))
 
 (defn start!
   "Start the Go cowsql test application"
   [test node]
-  (if (cu/daemon-running? pidfile)
+  (c/exec :mkdir :-p (app-data test node))
+  (if (cu/daemon-running? (app-pidfile test node))
     :already-running
-    (c/su
-      (c/exec :mkdir :-p data-dir)
-      (cu/start-daemon! {:env {:LIBCOWSQL_TRACE "1"
-                               :LIBRAFT_TRACE "1"}
-                         :logfile logfile
-                         :pidfile pidfile
-                         :chdir   data-dir}
-                        binary
-                        :-dir data-dir
-                        :-node (name node)
-                        :-latency (:latency test)
-                        :-cluster (str/join "," (:nodes test))))))
+    (cu/start-daemon! {:env {:LIBCOWSQL_TRACE "1"
+                             :LIBRAFT_TRACE "1"}
+                       :logfile (app-logfile test node)
+                       :pidfile (app-pidfile test node)
+                       :chdir   (app-data test node)}
+                      (app-binary test node)
+                      :-dir (app-data test node)
+                      :-node (name node)
+                      :-latency (:latency test)
+                      :-cluster (str/join "," (:nodes test)))))
 
 (defn kill!
   "Gracefully kill, `SIGTERM`, the Go cowsql test application."
-  [_test node]
+  [test node]
   (let [signal :SIGTERM]
-    (info "Killing" bin "with" signal "on" node)
-    (c/su
-     (cu/grepkill! signal bin))
+    (info "Killing" (app-name node) "with" signal "on" node)
+    (cu/grepkill! signal (app-name node))
     :killed))
 
 (defn stop!
   "Stop the Go cowsql test application with `stop-daemon!`,
    which will `SIGKILL`."
-  [_test _node]
-  (if (not (cu/daemon-running? pidfile))
+  [test node]
+  (if (not (cu/daemon-running? (app-pidfile test node)))
     :not-running
     (do
-      (c/su
-       (cu/stop-daemon! pidfile))
+      (cu/stop-daemon! (app-pidfile test node))
       :stopped)))
 
 (defn members
@@ -115,10 +136,9 @@
   indicate that the node has left the cluster and should not automatically
   rejoin it."
   [test node]
-  (c/exec :rm :-rf
-          (c/lit (str data-dir)))
-  (c/exec "mkdir" "-p" data-dir)
-  (c/exec "touch" (str data-dir "/removed")))
+  (c/exec :rm :-rf (c/lit (str (app-data test node))))
+  (c/exec "mkdir" "-p" (app-data test node))
+  (c/exec "touch" (str (app-data test node) "/removed")))
 
 (defn grow!
   "Adds a random node from the test to the cluster, if possible. Refreshes
@@ -139,8 +159,8 @@
       (c/on-nodes test [new-node]
                   (fn [test node]
                     (db/kill! (:db test) test node)
-                    (c/exec "mkdir" "-p" data-dir)
-                    (c/exec "touch" (str data-dir "/rejoin"))
+                    (c/exec "mkdir" "-p" (app-data test node))
+                    (c/exec "touch" (str (app-data test node) "/rejoin"))
                     (db/start! (:db test) test node)))
 
       new-node)
@@ -226,12 +246,16 @@
         (info "Setting up test application")
         (install! test node)
         (start! test node)
+
         ;; Wait until node is ready
         (retry (:cluster-setup-timeout test) (fn []
                                                (Thread/sleep 1000)
                                                (client/ready test node)))
-        ;; Spawn primary monitoring thread
-        (c/su
+
+        ;; Spawn primary monitoring thread. It will periodically refresh the
+        ;; cache containing the current list of cluster primaries (i.e. the raft
+        ;; leader).
+        (c/exec
          (when (compare-and-set! primary-thread nil :mine)
            (compare-and-set! primary-thread :mine
                              (future
@@ -255,23 +279,27 @@
         (when tmpfs
           (db/teardown! tmpfs test node))
         (Thread/sleep 200) ; avoid race: rm: cannot remove '/opt/cowsql/data': Directory not empty
-        (c/su (c/exec :rm :-rf dir)))
+        (c/exec :rm :-rf (app-dir test node)))
 
       db/LogFiles
-      (log-files [_ test node]
-        (let [tarball    (str dir "/data.tar.bz2")
-              ls-cmd     (str "ls " core-dump-glob)
+      (log-files [db test node]
+        (when (cu/daemon-running? (app-pidfile test node))
+          (db/pause! db test node))
+        (let [tarball    (str (app-dir test node) "/data.tar.bz2")
+              ls-cmd     (str "ls " (app-core-dump-glob test node))
               lines      (-> (try (c/exec "sh" "-c" ls-cmd)
                                (catch Exception e ""))
                               (str/split #"\n"))
               core-dumps (->> lines
                               (remove str/blank?)
                               (into []))
-              app-binary (when (seq core-dumps) binary)
-              everything (remove nil? [logfile tarball app-binary])]
+              binary (when (seq core-dumps) (app-binary test node))
+              everything (remove nil? [(app-logfile test node) tarball binary])]
           (try
-            (c/exec :sudo :tar :cjf tarball data-dir)
+            (c/exec :tar :cjf tarball (app-data test node))
             (catch Exception e (info "caught exception: " (.getMessage e))))
+          (when (cu/daemon-running? (app-pidfile test node))
+            (db/resume! db test node))
           everything))
 
       db/Process
@@ -284,16 +312,14 @@
       db/Pause
       (pause!
         [_db _test node]
-        (info "Pausing" bin "on" node)
-        (c/su
-         (cu/grepkill! :stop bin))
+        (info "Pausing" (app-name node) "on" node)
+        (cu/grepkill! :stop (app-name node))
         :paused)
 
       (resume!
         [_db _test node]
-        (info "Resuming" bin "on" node)
-        (c/su
-         (cu/grepkill! :cont bin))
+        (info "Resuming" (app-name node) "on" node)
+        (cu/grepkill! :cont (app-name node))
         :resumed)
 
       db/Primary

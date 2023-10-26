@@ -625,9 +625,13 @@ func main() {
 	// When rejoining set app.WithCluster() to the full list of existing
 	// nodes, otherwise set it only to the preceeding ones.
 	if rejoin {
-		options = append(options, app.WithCluster(otherAddresses(*node, nodes)))
+		others := otherAddresses(*node, nodes)
+		log.Printf("rejoining cluster %q", others)
+		options = append(options, app.WithCluster(others))
 	} else {
-		options = append(options, app.WithCluster(preceedingAddresses(*node, nodes)))
+		preceeding := preceedingAddresses(*node, nodes)
+		log.Printf("possibly joining existing cluster %q", preceeding)
+		options = append(options, app.WithCluster(preceeding))
 	}
 
 	// Spawn the cowsql server thread.

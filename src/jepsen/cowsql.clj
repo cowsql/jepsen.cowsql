@@ -98,7 +98,6 @@
                        :kill      {:targets (:node-targets opts)}
                        :interval  (:nemesis-interval opts)
                        :disk      {:targets (:node-targets opts)
-                                   :dir     db/data-dir
                                    :size-mb 100}}
         local         (:dummy? (:ssh opts))
         os            (if local container/os ubuntu/os)
@@ -135,8 +134,8 @@
                              (gen/stagger (/ (:rate opts)))
                              (gen/nemesis (gen/phases
                                            (gen/sleep 5)
-                                           (gen/log "Checking cluster stability")
-                                           {:type :info, :f :stable, :value nil}
+                                           ;(gen/log "Checking cluster stability")
+                                           ;{:type :info, :f :stable, :value nil}
                                            (:generator nemesis)))
                              (gen/time-limit (:time-limit opts)))
                         ;; Allow dust to settle before healing cluster
@@ -145,8 +144,8 @@
                         (gen/nemesis (:final-generator nemesis))
                         (gen/log "Waiting for recovery")
                         (gen/sleep 2)
-                        (gen/log "Checking cluster health and stability")
-                        (gen/nemesis {:type :info, :f :health, :value nil})
+                        ;(gen/log "Checking cluster health and stability")
+                        ;(gen/nemesis {:type :info, :f :health, :value nil})
                         (gen/clients (:final-generator workload)))})))
 
 (defn parse-nemesis-spec
@@ -202,6 +201,9 @@
 
    ["-b" "--binary BINARY" "Use the given pre-built cowsql test application binary."
     :default nil]
+
+   ["-d" "--dir DIR" "Directory to use to store node data."
+    :default "/srv/jepsen"]
 
    [nil "--cluster-setup-timeout SECS" "How long to wait for the cluster to be ready."
     :default 10
