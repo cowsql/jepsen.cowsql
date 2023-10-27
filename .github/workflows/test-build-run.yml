@@ -98,14 +98,6 @@ jobs:
         repository: ${{ inputs.jepsen-cowsql-repo || github.repository }}
         ref: ${{ inputs.jepsen-cowsql-ref || github.ref }}
 
-    - name: Cache Jepsen (lein project) dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-clojure-${{ hashFiles('**/project.clj') }}
-        restore-keys: |
-          ${{ runner.os }}-clojure
-
     - name: Install Go
       uses: actions/setup-go@v4
 
