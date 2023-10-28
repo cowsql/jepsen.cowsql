@@ -98,13 +98,11 @@ jobs:
         repository: ${{ inputs.jepsen-cowsql-repo || github.repository }}
         ref: ${{ inputs.jepsen-cowsql-ref || github.ref }}
 
-    - name: Install Go
-      uses: actions/setup-go@v4
-
     - name: Setup environment
       timeout-minutes: 15
       run: |
         sudo apt update
+        sudo apt install golang
         sudo apt install -y gnuplot libsqlite3-dev libuv1-dev liblz4-dev libjna-java graphviz leiningen build-essential
         printf core | sudo tee /proc/sys/kernel/core_pattern
 
@@ -116,17 +114,6 @@ jobs:
         git log -n 1
         lein install
         cd ../..
-
-    - name: Install libbacktrace
-      run: |
-        git clone https://github.com/ianlancetaylor/libbacktrace --depth 1
-        cd libbacktrace
-        autoreconf -i
-        ./configure
-        make -j4
-        sudo make install
-        sudo ldconfig
-        cd ..
 
     - name: Check out raft
       uses: actions/checkout@v3
