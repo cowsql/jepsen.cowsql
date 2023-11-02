@@ -282,7 +282,6 @@
         (kill! test node)
         (when tmpfs
           (db/teardown! tmpfs test node))
-        (Thread/sleep 200) ; avoid race: rm: cannot remove '/opt/cowsql/data': Directory not empty
         (c/exec :rm :-rf (app-dir test node)))
 
       db/LogFiles
