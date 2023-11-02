@@ -98,22 +98,12 @@ jobs:
         repository: ${{ inputs.jepsen-cowsql-repo || github.repository }}
         ref: ${{ inputs.jepsen-cowsql-ref || github.ref }}
 
-    - name: Cache Jepsen (lein project) dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-clojure-${{ hashFiles('**/project.clj') }}
-        restore-keys: |
-          ${{ runner.os }}-clojure
-
-    - name: Install Go
-      uses: actions/setup-go@v4
-
     - name: Setup environment
       timeout-minutes: 15
       run: |
         sudo apt update
-        sudo apt install -y gnuplot libsqlite3-dev libuv1-dev liblz4-dev libjna-java graphviz leiningen build-essential
+        sudo apt install golang
+        sudo apt install -y gnuplot libsqlite3-dev libuv1-dev liblz4-dev libjna-java graphviz leiningen build-essential psmisc
         printf core | sudo tee /proc/sys/kernel/core_pattern
 
     - name: Install local Jepsen
@@ -124,17 +114,6 @@ jobs:
         git log -n 1
         lein install
         cd ../..
-
-    - name: Install libbacktrace
-      run: |
-        git clone https://github.com/ianlancetaylor/libbacktrace --depth 1
-        cd libbacktrace
-        autoreconf -i
-        ./configure
-        make -j4
-        sudo make install
-        sudo ldconfig
-        cd ..
 
     - name: Check out raft
       uses: actions/checkout@v3
@@ -195,24 +174,14 @@ jobs:
       if: ${{ always() }}
       run: tail -n 100 store/current/jepsen.log > store/current/tail-jepsen.log
 
-    - name: Summary Artifact
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: jepsen-data-${{ matrix.workload }}-${{ matrix.nemesis }}-summary
-        path: |
-          store/cowsql*/**/results.edn
-          store/cowsql*/**/latency-raw.png
-          store/cowsql*/**/tail-jepsen.log
-          !**/current/
-          !**/latest/
-
     - name: Failure Artifact
       if: ${{ failure() }}
       uses: actions/upload-artifact@v3
       with:
         name: jepsen-data-${{ matrix.workload }}-${{ matrix.nemesis }}-failure
         path: |
+          /usr/local/lib/libcowsql*
+          /usr/local/lib/libraft*
           store/cowsql*
           !**/current/
           !**/latest/
