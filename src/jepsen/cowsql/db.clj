@@ -96,22 +96,26 @@
                       :-cluster (str/join "," (:nodes test)))))
 
 (defn kill!
-  "Gracefully kill, `SIGTERM`, the Go cowsql test application."
+  "Forcefully kill the Go cowsql test application with `SIGKILL`."
   [test node]
-  (let [signal :SIGTERM]
-    (info "Killing" (app-name node) "with" signal "on" node)
-    (cu/grepkill! signal (app-name node))
+  (let [cmd (app-name node)
+        pidfile (app-pidfile test node)]
+    (cu/stop-daemon! cmd pidfile)
     :killed))
 
 (defn stop!
-  "Stop the Go cowsql test application with `stop-daemon!`,
-   which will `SIGKILL`."
+  "Gracefully stop the Go cowsql test application by sending `SIGTERM`."
   [test node]
-  (if (not (cu/daemon-running? (app-pidfile test node)))
-    :not-running
-    (do
-      (cu/stop-daemon! (app-pidfile test node))
-      :stopped)))
+  (let [cmd (app-name node)
+        pidfile (app-pidfile test node)]
+    (info "Send SIGTERM to" cmd)
+    (timeout 30000 (throw+ {:type    ::kill-timed-out
+                            :cmd     cmd
+                            :pidfile pidfile})
+             (meh (c/exec :killall :-TERM :-w cmd)))
+    (when pidfile
+      (meh (c/exec :rm :-rf pidfile)))
+    :stopped))
 
 (defn members
   "Fetch the cluster members from a random node (who will ask the leader)."
