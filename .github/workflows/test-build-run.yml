@@ -103,7 +103,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install golang
-        sudo apt install -y gnuplot libsqlite3-dev libuv1-dev liblz4-dev libjna-java graphviz leiningen build-essential
+        sudo apt install -y gnuplot libsqlite3-dev libuv1-dev liblz4-dev libjna-java graphviz leiningen build-essential psmisc
         printf core | sudo tee /proc/sys/kernel/core_pattern
 
     - name: Install local Jepsen
