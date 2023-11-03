@@ -120,7 +120,7 @@
             :local     local
             :os        os
             :db        db
-            :checker    (checker/compose
+            :checker   (checker/compose
                          {:perf        (checker/perf {:nemeses (:perf nemesis)})
                           :clock       (checker/clock-plot)
                           :stats       (checker/stats)
