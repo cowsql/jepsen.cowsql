@@ -147,7 +147,7 @@ jobs:
         cd raft
         git log -n 1
         autoreconf -i
-        ./configure --enable-debug --enable-backtrace
+        ./configure --enable-debug --enable-backtrace --enable-sanitize
         make -j4
         sudo make install
         sudo ldconfig
@@ -164,7 +164,7 @@ jobs:
         cd cowsql
         git log -n 1
         autoreconf -i
-        ./configure --enable-debug --enable-backtrace
+        ./configure --enable-debug --enable-backtrace --enable-sanitize
         make -j4
         sudo make install
         sudo ldconfig
@@ -176,7 +176,7 @@ jobs:
       run: |
         go get golang.org/x/sync/semaphore
         go get -tags libsqlite3 github.com/cowsql/go-cowsql/app
-        go build -tags libsqlite3 -o resources/app resources/app.go
+        go build -asan -tags libsqlite3 -o resources/app resources/app.go
         sudo ufw disable
         sleep 0.200
         sudo systemctl stop ufw.service
