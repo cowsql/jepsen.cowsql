@@ -148,7 +148,7 @@ jobs:
         git log -n 1
         autoreconf -i
         ./configure --enable-debug --enable-backtrace
-        make -j4
+        make -j4 CFLAGS=-O0
         sudo make install
         sudo ldconfig
 
