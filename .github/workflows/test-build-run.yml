@@ -196,7 +196,7 @@ jobs:
 
     - name: Failure Artifact
       if: ${{ failure() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: jepsen-data-${{ matrix.workload }}-${{ matrix.nemesis }}-failure
         path: |
